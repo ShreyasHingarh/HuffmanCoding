@@ -4,7 +4,9 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            HuffmanCode<int> code = new HuffmanCode<int>();
+
+            List<Node<int>> nodes = code.GetFrequency("hi my name is bob and i like pizza");
         }
     }
 }
