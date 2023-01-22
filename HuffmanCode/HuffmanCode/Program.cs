@@ -7,6 +7,8 @@
             HuffmanCode<int> code = new HuffmanCode<int>();
 
             List<Node<int>> nodes = code.GetFrequency("hi my name is bob and i like pizza");
+            Dictionary<Node<int>, byte[]> thing = code.Compress("hello");
+            
         }
     }
 }
