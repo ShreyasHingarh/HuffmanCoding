@@ -26,7 +26,6 @@ namespace HuffmanCode
     }
     internal class HuffmanCode<T>
     {
-        public PriorityQueue<Node<T>, int> Queue = new PriorityQueue<Node<T>, int>();
         public List<Node<T>> GetFrequency(string Text)
         {
             List<Node<T>> nodes = new List<Node<T>>();
@@ -64,8 +63,11 @@ namespace HuffmanCode
             return newByte;
         }
         public List<byte> BinaryStringTraversal(Node<T> Root,string Text)
-        {
-            if (Root == null || (Root.Right == null && Root.Left == null))
+        { 
+            //redo so that only leaf nodes get added
+            // doesn't work with "{string with only one character}"
+            // doesn't work with "{empty string}"
+            if (Root == null )
             {
                 return null;
             }
@@ -111,6 +113,8 @@ namespace HuffmanCode
         }
         public Node<T> ConstructTree(List<Node<T>> node)
         {
+            PriorityQueue<Node<T>, int> Queue = new PriorityQueue<Node<T>, int>();
+
             foreach (var item in node)
             {
                 Queue.Enqueue(item, item.Frequency);
@@ -126,7 +130,7 @@ namespace HuffmanCode
         }
         public byte BinaryToDecimal(string binaryString)
         {
-            //0010111000 = 0 + 0+0+8+16 + 32+0 + 128 = 184
+          
             byte result = 0;
             int exponent = 0;
             for(int i = binaryString.Length - 1; i > -1;i--)
@@ -173,7 +177,7 @@ namespace HuffmanCode
             realByte[realByte.Length - 1] = (byte)zerosAdded;
             return realByte;
         }
-        public byte[] Compress(string Text)
+        public (byte[], Node<T>) Compress(string Text)
         {
             //find how many of each letter is in the text
             List<Node<T>> node = GetFrequency(Text);
@@ -182,7 +186,7 @@ namespace HuffmanCode
             //Traverse 
             List<byte> array = BinaryStringTraversal(Root,Text);
             //Encode
-            return Encode(array);
+            return (Encode(array),Root);
             
         }
         
@@ -203,16 +207,53 @@ namespace HuffmanCode
             
             return thing.ToString();
         }
-        public string Decompress(byte[] code)
+        public string CreateBinaryString(byte[] code)
         {
-            StringBuilder temp = new StringBuilder();
-            for (int i = 0; i < code.Length - 1;i++)
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < code.Length - 1; i++)
             {
-                temp.Append(code[i]);
+                stringBuilder.Append(DecimalToBinary(code[i]));
             }
-            temp.Remove(temp.Length - 1 - code[code.Length - 1], code[code.Length - 1]);
-            string actual = temp.ToString();
-            return temp;
+
+            stringBuilder.Remove(stringBuilder.Length - 1 - code[code.Length - 1], code[code.Length - 1]);
+            return stringBuilder.ToString();
+        }
+        public string GetNodes(string BinaryString,Node<T> Root)
+        {
+
+            
+            if (Root == null || (Root.Right == null && Root.Left == null) || BinaryString == null)
+            {
+                return null;
+            }
+            string actual = "";
+            Node<T> Current = Root;
+            for(int i = 0;i < BinaryString.Length;i++)
+            {
+                
+                if (Current.Left != null && BinaryString[i] == '0')
+                {
+                    Current = Current.Left;
+                }
+                else if (Current.Right != null && BinaryString[i] == '1')
+                {
+                    Current = Current.Right;   
+                }
+                if(Current.Left == null && Current.Right == null)
+                {
+                    actual += Current.Letter;
+                    Current = Root;
+                }
+
+            }
+            return actual;
+        }
+        public string Decompress(byte[] code,Node<T> Tree)
+        {
+            //Create BinaryString
+            string BinaryString = CreateBinaryString(code);
+            //Get Nodes by traversing form a string
+            return GetNodes(BinaryString,Tree);
         }
     }
 }
