@@ -64,13 +64,11 @@ namespace HuffmanCode
         }
         public List<byte> BinaryStringTraversal(Node<T> Root,string Text)
         { 
-            //redo so that only leaf nodes get added
-            // doesn't work with "{string with only one character}"
-            // doesn't work with "{empty string}"
-            if (Root == null )
+            if (Root == null || Text == null)
             {
                 return null;
             }
+            // Adding all the nodes to a dictionary from Node to byte[]
             Stack<Node<T>> Nodes = new Stack<Node<T>>();
             Stack<byte[]> Bytes = new Stack<byte[]>();
             Dictionary<Node<T>, byte[]> Dictionary = new Dictionary<Node<T>, byte[]>();
@@ -91,14 +89,14 @@ namespace HuffmanCode
                     Nodes.Push(temp.Right);
                     Bytes.Push(copyArray(1, tempByte));
                 }
-
             }
+
+            // Seperating the actual nodes from the sentinals
             Dictionary<char, byte[]> actual = new Dictionary<char, byte[]>();
             foreach (var thing in Dictionary)
             {
-                if (thing.Key.Letter == '$') continue;
+                if (thing.Key.Right != null || thing.Key.Left != null) continue;
                 actual.Add(thing.Key.Letter, thing.Value);
-
             }
             List<byte> bytes = new List<byte>();
             for (int i = 0; i < Text.Length; i++)
@@ -119,13 +117,24 @@ namespace HuffmanCode
             {
                 Queue.Enqueue(item, item.Frequency);
             }
-            while (Queue.Count != 1)
+            if (Queue.Count == 1)
             {
-                Node<T> temp1 = Queue.Dequeue();
-                Node<T> temp2 = Queue.Dequeue();
-                Node<T> Parent = new Node<T>(temp1.Frequency + temp2.Frequency, '$', temp1, temp2);
-                Queue.Enqueue(Parent, Parent.Frequency);
+                Node<T> temp = Queue.Dequeue();
+                Node<T> Parent = new Node<T>(temp.Frequency, '\0' , null, temp);
+                return Parent;
             }
+            else
+            {
+                while (Queue.Count != 1)
+                {
+                    Node<T> temp1 = Queue.Dequeue();
+                    Node<T> temp2 = Queue.Dequeue();
+                    Node<T> Parent = new Node<T>(temp1.Frequency + temp2.Frequency, '$', temp1, temp2);
+                    Queue.Enqueue(Parent, Parent.Frequency);
+                }
+
+            }
+
             return Queue.Dequeue();
         }
         public byte BinaryToDecimal(string binaryString)
@@ -179,6 +188,7 @@ namespace HuffmanCode
         }
         public (byte[], Node<T>) Compress(string Text)
         {
+            if (Text == "") throw new Exception();
             //find how many of each letter is in the text
             List<Node<T>> node = GetFrequency(Text);
             //construct tree
@@ -208,14 +218,16 @@ namespace HuffmanCode
             return thing.ToString();
         }
         public string CreateBinaryString(byte[] code)
-        {
+        {// bugged doesn't print the actual last character 's'
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < code.Length - 1; i++)
             {
-                stringBuilder.Append(DecimalToBinary(code[i]));
+                string thing = DecimalToBinary(code[i]);
+                stringBuilder.Append(thing);
+                ;
             }
 
-            stringBuilder.Remove(stringBuilder.Length - 1 - code[code.Length - 1], code[code.Length - 1]);
+            stringBuilder.Remove(stringBuilder.Length - code[code.Length - 1], code[code.Length - 1]);
             return stringBuilder.ToString();
         }
         public string GetNodes(string BinaryString,Node<T> Root)
