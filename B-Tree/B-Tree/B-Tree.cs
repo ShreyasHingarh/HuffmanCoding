@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace B_Tree
 {
-    enum TypeOfNode
+    public enum TypeOfNode
     {
         TwoNode,
         ThreeNode,
@@ -14,21 +14,59 @@ namespace B_Tree
     }
     public class Node<T>
     {
-
+        public LinkedList<Node<T>> Children;
+        public LinkedList<T> Nodes;
+        public TypeOfNode Type
+        {
+            get
+            {
+                return (TypeOfNode)Nodes.Count - 1;
+            }
+        }
+        public Node(T Value)
+        {
+            Children = new LinkedList<Node<T>>();
+            Nodes = new LinkedList<T>();
+            Nodes.AddFirst(Value);
+        }
     }
-    internal class B_Tree<T>
+    internal class B_Tree<T> where T : IComparable
     {
+        Node<T> Root;
+        public Node<T> LocatePositionOfNewNode(T Value)
+        {
+            Node<T> Current = Root;
+            while(Current.Children.Count != 0)
+            {
+                if (Value.CompareTo(Current.Nodes.Last.Value) > 0)
+                {
+                    Current = Current.Children.Last();
+                    continue;
+                } 
+                if(Current.Type != TypeOfNode.TwoNode && Value.CompareTo(Current.Nodes.First()) > 0)
+                {
+                    Current = Current.Children.First.Next.Value;
+                    continue;
+                }
+                if (Current.Type == TypeOfNode.FourNode && Value.CompareTo(Current.Nodes.Last.Previous) > 0)
+                {
+                    Current = Current.Children.Last.Previous.Value;
+                    continue;
+                }
+                Current = Current.Children.First();
+            }
+            return Current;
+        }
         public void Insert(T Value)
         {
-            
-        }
-        public Node<T> Remove(T Value)
-        {
-
-        }
-        public Node<T> Search(T Value)
-        {
-
+            if(Root == null)
+            {
+                Root = new Node<T>(Value);
+                return;
+            }
+            //locate where to add value
+            //add it 
+            //split to make balanced
         }
     }
 }
