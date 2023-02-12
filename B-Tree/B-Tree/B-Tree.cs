@@ -33,6 +33,7 @@ namespace B_Tree
     internal class B_Tree<T> where T : IComparable
     {
         Node<T> Root;
+        List<Node<T>> Nodes = new List<Node<T>>();
         public Node<T> LocatePositionOfNewNode(T Value)
         {
             Node<T> Current = Root;
@@ -46,6 +47,7 @@ namespace B_Tree
                 if(Current.Type != TypeOfNode.TwoNode && Value.CompareTo(Current.Nodes.First()) > 0)
                 {
                     Current = Current.Children.First.Next.Value;
+                    
                     continue;
                 }
                 if (Current.Type == TypeOfNode.FourNode && Value.CompareTo(Current.Nodes.Last.Previous) > 0)
@@ -54,8 +56,38 @@ namespace B_Tree
                     continue;
                 }
                 Current = Current.Children.First();
+                 
             }
+
             return Current;
+        }
+        public bool AddValue(Node<T> node,T Value)
+        {
+            if (Value.CompareTo(node.Nodes.Last.Value) > 0)
+            {
+                node.Nodes.AddLast(Value);
+            }
+            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.Last.Previous.Value) > 0)
+            {
+                node.Nodes.AddBefore(node.Nodes.Last, Value);
+            }
+            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.First.Value) > 0)
+            {
+                node.Nodes.AddAfter(node.Nodes.First, Value);
+            }
+            else
+            {
+                node.Nodes.AddFirst(Value);
+            }
+            return node.Type == TypeOfNode.FourNode;
+        }
+
+        public void ActualSplit()
+        {
+            
+        }
+        private Node<T> Split(Node<T> node)
+        {
         }
         public void Insert(T Value)
         {
