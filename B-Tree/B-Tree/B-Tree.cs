@@ -34,34 +34,9 @@ namespace B_Tree
     {
         Node<T> Root;
         List<Node<T>> Nodes = new List<Node<T>>();
-        public Node<T> LocatePositionOfNewNode(T Value)
-        {
-            Node<T> Current = Root;
-            while(Current.Children.Count != 0)
-            {
-                if (Value.CompareTo(Current.Nodes.Last.Value) > 0)
-                {
-                    Current = Current.Children.Last();
-                    continue;
-                } 
-                if(Current.Type != TypeOfNode.TwoNode && Value.CompareTo(Current.Nodes.First()) > 0)
-                {
-                    Current = Current.Children.First.Next.Value;
-                    
-                    continue;
-                }
-                if (Current.Type == TypeOfNode.FourNode && Value.CompareTo(Current.Nodes.Last.Previous) > 0)
-                {
-                    Current = Current.Children.Last.Previous.Value;
-                    continue;
-                }
-                Current = Current.Children.First();
-                 
-            }
-
-            return Current;
-        }
-        public bool AddValue(Node<T> node,T Value)
+        
+        Stack<Node<T>> StackOfNodes = new Stack<Node<T>>();
+        public void AddValue(Node<T> node,T Value)
         {
             if (Value.CompareTo(node.Nodes.Last.Value) > 0)
             {
@@ -79,15 +54,38 @@ namespace B_Tree
             {
                 node.Nodes.AddFirst(Value);
             }
-            return node.Type == TypeOfNode.FourNode;
         }
+        private void Split(Node<T> NodeToSplit, Node<T> parent)
+        {
 
-        public void ActualSplit()
-        {
-            
         }
-        private Node<T> Split(Node<T> node)
+        private Node<T> SearchFor(Node<T> node, T Value)
         {
+            Node<T> Parent = node;
+            Node<T> current = node;
+            if (Value.CompareTo(current.Nodes.Last.Value) > 0)
+            {
+                current = current.Children.Last();
+            }
+            else if (current.Type != TypeOfNode.TwoNode && Value.CompareTo(current.Nodes.First()) > 0)
+            {
+                current = current.Children.First.Next.Value;
+            }
+            else if (current.Type != TypeOfNode.TwoNode && Value.CompareTo(current.Nodes.Last.Previous) > 0)
+            {
+                current = current.Children.Last.Previous.Value;
+            }
+            current = current.Children.First();
+            if(current.Type == TypeOfNode.FourNode)
+            {
+                 Split(current,Parent);
+            }
+            if (current.Children != null)
+            {
+                StackOfNodes.Push(current);
+                return SearchFor(current, Value);
+            }
+            return current;
         }
         public void Insert(T Value)
         {
@@ -96,9 +94,9 @@ namespace B_Tree
                 Root = new Node<T>(Value);
                 return;
             }
-            //locate where to add value
-            //add it 
-            //split to make balanced
+            StackOfNodes.Push(Root);
+            Node<T> temp = SearchFor(Root, Value);
+            AddValue(temp,Value);
         }
     }
 }
