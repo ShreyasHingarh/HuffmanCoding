@@ -15,7 +15,7 @@ namespace B_Tree
     public class Node<T>
     {
         public LinkedList<Node<T>> Children;
-        public LinkedList<T> Nodes;
+        public LinkedList<(T,int)> Nodes;
         public TypeOfNode Type
         {
             get
@@ -26,8 +26,8 @@ namespace B_Tree
         public Node(T Value)
         {
             Children = new LinkedList<Node<T>>();
-            Nodes = new LinkedList<T>();
-            Nodes.AddFirst(Value);
+            Nodes = new LinkedList<(T, int)>();
+            Nodes.AddFirst(new LinkedListNode<(T,int)>((Value, 1)));
         }
     }
     internal class B_Tree<T> where T : IComparable
@@ -37,30 +37,38 @@ namespace B_Tree
         {
             if (Value.CompareTo(node.Nodes.Last.Value) > 0)
             {
-                node.Nodes.AddLast(Value);
+                node.Nodes.AddLast(new LinkedListNode<(T, int)>((Value, 1)));
             }
             else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.Last.Previous.Value) > 0)
             {
-                node.Nodes.AddBefore(node.Nodes.Last, Value);
+                node.Nodes.AddBefore(node.Nodes.Last, new LinkedListNode<(T, int)>((Value, 1)));
             }
             else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.First.Value) > 0)
             {
-                node.Nodes.AddAfter(node.Nodes.First, Value);
+                node.Nodes.AddAfter(node.Nodes.First, new LinkedListNode<(T, int)>((Value, 1)));
             }
             else
             {
-                node.Nodes.AddFirst(Value);
+                node.Nodes.AddFirst(new LinkedListNode<(T, int)>((Value, 1)));
             }
         }
-        
-        public void AddChildren(Node<T> NodeToSplit,LinkedList<Node<T>> OldChildren)
-        {
-            if (OldChildren.Count == 0) return;
-            NodeToSplit.Children.First.Value.Children.AddFirst(OldChildren.First.Value);
-            NodeToSplit.Children.First.Value.Children.AddLast(OldChildren.First.Next.Value);
 
-            NodeToSplit.Children.Last.Value.Children.AddFirst(OldChildren.Last.Previous.Value);
-            NodeToSplit.Children.Last.Value.Children.AddLast(OldChildren.Last.Value);
+        public void AddAndRemoveChildren(Node<T> parentChild, LinkedList<Node<T>> OldChildren)
+        {
+            Node<T> temp = OldChildren.First.Value;
+            OldChildren.Remove(OldChildren.First);
+            parentChild.Children.AddLast(temp);
+            
+        }
+        public void AddChildren(LinkedList<Node<T>> ParentsChildren, LinkedList<Node<T>> OldChildren)
+        {
+            foreach (var parentChild in ParentsChildren)
+            {
+                if (parentChild.Children.Count != 0) continue;
+                AddAndRemoveChildren(parentChild, OldChildren);
+                AddAndRemoveChildren(parentChild, OldChildren);
+            }
+
         }
         LinkedList<Node<T>> Clone(LinkedList<Node<T>> nodes)
         {
@@ -73,7 +81,7 @@ namespace B_Tree
         }
         private void Split(Node<T> NodeToSplit, Node<T> parent)
         {
-            T theMiddle = NodeToSplit.Nodes.First.Next.Value; 
+            (T,int) theMiddle = NodeToSplit.Nodes.First.Next.Value; 
             LinkedList<Node<T>> OldChildren = Clone(NodeToSplit.Children);
             NodeToSplit.Children.Clear();
             if (NodeToSplit == parent)
@@ -91,7 +99,10 @@ namespace B_Tree
                 NodeToSplit.Nodes.RemoveLast();
                 NodeToSplit.Children.AddLast(new Node<T>(b));
 
-                AddChildren(NodeToSplit, OldChildren);
+                if(OldChildren.Count != 0)
+                {
+                    AddChildren(parent.Children, OldChildren);
+                }
 
                 Root = NodeToSplit;
                 return;
@@ -99,11 +110,16 @@ namespace B_Tree
             NodeToSplit.Nodes.Remove(theMiddle);
             AddValue(parent, theMiddle); 
             //Splitting the 'a' node from the 'c' node in an 'abc' node key thing
-            T thing = NodeToSplit.Nodes.First();
+            (T,int) thing = NodeToSplit.Nodes.First();
             NodeToSplit.Nodes.Remove(NodeToSplit.Nodes.First);
             //Adding the removed 'a' node
             parent.Children.AddBefore(parent.Children.Last, new Node<T>(thing));
-            AddChildren(NodeToSplit, OldChildren);
+            // this won't work, would asign 4 children to one node.
+            if(OldChildren.Count != 0)
+            {
+                AddChildren(parent.Children, OldChildren);
+            }
+
         }
         private Node<T> SearchFor(Node<T> node, T Value)
         {
