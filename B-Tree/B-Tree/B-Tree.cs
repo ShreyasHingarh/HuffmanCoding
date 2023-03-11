@@ -35,15 +35,30 @@ namespace B_Tree
         public Node<T> Root;
         private void AddValue(Node<T> node,T Value)
         {
-            if (Value.CompareTo(node.Nodes.Last.Value) > 0)
+            (T, int) thing;
+            thing.Item1 = Value;
+            thing.Item2 = -1;
+            foreach(var item in node.Nodes)
+            {
+                if(item.Item1.Equals(Value))
+                {
+                    thing = item;
+                    break;
+                }
+            }    
+            if(!thing.Item2.Equals(-1))
+            {
+                thing.Item2++;
+            }
+            if (Value.CompareTo(node.Nodes.Last.Value.Item1) > 0)
             {
                 node.Nodes.AddLast(new LinkedListNode<(T, int)>((Value, 1)));
             }
-            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.Last.Previous.Value) > 0)
+            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.Last.Previous.Value.Item1) > 0)
             {
                 node.Nodes.AddBefore(node.Nodes.Last, new LinkedListNode<(T, int)>((Value, 1)));
             }
-            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.First.Value) > 0)
+            else if (node.Type != TypeOfNode.TwoNode && Value.CompareTo(node.Nodes.First.Value.Item1) > 0)
             {
                 node.Nodes.AddAfter(node.Nodes.First, new LinkedListNode<(T, int)>((Value, 1)));
             }
@@ -91,11 +106,11 @@ namespace B_Tree
                 // make the previous children of the old root children of the new children
                 
                 
-                T a = NodeToSplit.Nodes.First.Value;
+                T a = NodeToSplit.Nodes.First.Value.Item1;
                 NodeToSplit.Nodes.RemoveFirst();
                 NodeToSplit.Children.AddFirst(new Node<T>(a));
 
-                T b = NodeToSplit.Nodes.Last.Value;
+                T b = NodeToSplit.Nodes.Last.Value.Item1;
                 NodeToSplit.Nodes.RemoveLast();
                 NodeToSplit.Children.AddLast(new Node<T>(b));
 
@@ -108,12 +123,12 @@ namespace B_Tree
                 return;
             }
             NodeToSplit.Nodes.Remove(theMiddle);
-            AddValue(parent, theMiddle); 
+            AddValue(parent, theMiddle.Item1); 
             //Splitting the 'a' node from the 'c' node in an 'abc' node key thing
             (T,int) thing = NodeToSplit.Nodes.First();
             NodeToSplit.Nodes.Remove(NodeToSplit.Nodes.First);
             //Adding the removed 'a' node
-            parent.Children.AddBefore(parent.Children.Last, new Node<T>(thing));
+            parent.Children.AddBefore(parent.Children.Last, new Node<T>(thing.Item1));
             // this won't work, would asign 4 children to one node.
             if(OldChildren.Count != 0)
             {
